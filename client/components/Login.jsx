@@ -1,6 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Auth from './controllers/Auth';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'
+
 const Login = () => {
+  const [existingUser,setExistingUser]=useState({userId:"",password:""})
+  const navigate=useNavigate()
   return (
     <>
       <div className="min-h-screen w-full bg-zinc-950 flex flex-col items-center justify-center p-4 font-sans selection:bg-indigo-500/30">
@@ -26,6 +32,7 @@ const Login = () => {
         <div className="relative group">
           <input
             type="text"
+             onChange={(e)=>{setExistingUser({...existingUser,userId:e.target.value})}}
             className="w-full bg-zinc-800/30 border border-zinc-700/50 text-white text-sm rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all placeholder:text-zinc-600 shadow-inner"
             placeholder="johndoe@example.com"
           />
@@ -42,6 +49,7 @@ const Login = () => {
             type="password"
             className="w-full bg-zinc-800/30 border border-zinc-700/50 text-white text-sm rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all placeholder:text-zinc-600 shadow-inner"
             placeholder="••••••••"
+            onChange={(e)=>{setExistingUser({...existingUser,password:e.target.value})}}
           />
         </div>
       </div>
@@ -60,6 +68,7 @@ const Login = () => {
 
       <button
         type="button"
+        onClick={()=>Auth(existingUser,'Login',navigate)}
         className="group relative w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-200 active:scale-[0.98] overflow-hidden"
       >
         <span className="relative z-10 flex items-center justify-center gap-2">

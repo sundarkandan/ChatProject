@@ -1,6 +1,19 @@
 import React from 'react';
+import { useState } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useLocation,useNavigate } from 'react-router-dom';
 const DashBoard = () => {
+    const auth=useLocation().state?.auth;
+    const [user,setUser]=useState(useLocation().state?.user )
+    
+    const navigate=useNavigate()
+    useEffect(()=>{
+      console.log(auth,user)
+      if(!auth){
+        navigate('/')
+      }
+    },[auth,navigate])
   return (
     <>
       <style>
@@ -50,8 +63,10 @@ const DashBoard = () => {
         </div>
         
         <div className="flex flex-wrap items-center gap-4">
-          <Link to="/chat">
-          <button type="button" className="group flex items-center justify-center gap-3 bg-zinc-800/50 hover:bg-indigo-600 border border-zinc-700/50 hover:border-indigo-400 px-6 py-3.5 rounded-2xl transition-all duration-300 shadow-lg shrink-0">
+        
+          <button onClick={()=>{
+            navigate('/chat',{state:{user,auth}})
+          }} type="button" className="group flex items-center justify-center gap-3 bg-zinc-800/50 hover:bg-indigo-600 border border-zinc-700/50 hover:border-indigo-400 px-6 py-3.5 rounded-2xl transition-all duration-300 shadow-lg shrink-0">
             <div className="relative">
               <svg className="w-6 h-6 text-indigo-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -63,7 +78,7 @@ const DashBoard = () => {
             </div>
             <span className="text-white font-bold text-sm uppercase tracking-widest">Messages</span>
           </button>
-          </Link>
+        
 
          <Link to="/">
           <button type="button" className="group flex items-center justify-center gap-3 bg-rose-500/10 hover:bg-rose-600 border border-rose-500/20 hover:border-rose-400 px-6 py-3.5 rounded-2xl transition-all duration-300 shadow-lg shrink-0">

@@ -1,6 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Auth from './controllers/Auth';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'
 const Register = () => {
+  const[newUser,setNewUser]=useState({
+    firstname:"",
+    lastname:"",
+    userId:"",
+    password:""
+})
+const navigate=useNavigate()
   return (
     <>
       <div className="min-h-screen w-full bg-zinc-950 flex flex-col items-center justify-center p-4 font-sans selection:bg-indigo-500/30">
@@ -26,6 +36,7 @@ const Register = () => {
           <label className="block text-xs font-semibold text-zinc-400 ml-1 uppercase tracking-wider">First Name</label>
           <input
             type="text"
+            onChange={(e)=>{setNewUser({...newUser,firstname:e.target.value})}}
             className="w-full bg-zinc-800/30 border border-zinc-700/50 text-white text-sm rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all placeholder:text-zinc-600 shadow-inner"
             placeholder="John"
           />
@@ -34,6 +45,7 @@ const Register = () => {
           <label className="block text-xs font-semibold text-zinc-400 ml-1 uppercase tracking-wider">Last Name</label>
           <input
             type="text"
+              onChange={(e)=>{setNewUser({...newUser,lastname:e.target.value})}}
             className="w-full bg-zinc-800/30 border border-zinc-700/50 text-white text-sm rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all placeholder:text-zinc-600 shadow-inner"
             placeholder="Doe"
           />
@@ -50,6 +62,7 @@ const Register = () => {
             type="text"
             className="w-full bg-zinc-800/30 border border-zinc-700/50 text-white text-sm rounded-xl pl-8 pr-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all placeholder:text-zinc-600 shadow-inner"
             placeholder="johndoe"
+              onChange={(e)=>{setNewUser({...newUser,userId:e.target.value})}}
           />
         </div>
       </div>
@@ -60,12 +73,14 @@ const Register = () => {
           type="password"
           className="w-full bg-zinc-800/30 border border-zinc-700/50 text-white text-sm rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all placeholder:text-zinc-600 shadow-inner"
           placeholder="••••••••"
+            onChange={(e)=>{setNewUser({...newUser,password:e.target.value})}}
         />
-        <p className="text-[10px] text-zinc-500 px-1">Must be at least 8 characters long.</p>
+      
       </div>
 
       <button
         type="button"
+        onClick={(e)=>Auth(newUser,'Register',navigate)}
         className="group relative w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-200 active:scale-[0.98] overflow-hidden mt-2"
       >
         <span className="relative z-10 flex items-center justify-center gap-2">

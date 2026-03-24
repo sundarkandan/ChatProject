@@ -1,6 +1,20 @@
 import React from 'react';
+import { useState } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useLocation,useNavigate } from 'react-router-dom';
 const ChatPage = () => {
+  const navigate=useNavigate()
+  const auth=useLocation().state?.auth || false
+  const[user,setUser]=useState(useLocation().state?.user || {})
+  useEffect(()=>{
+    if(!auth ){
+      navigate('/')
+    }
+    else{
+      console.log(auth)
+    }
+  },[auth, navigate])
   return (
     <>
       <div className="h-screen w-full bg-zinc-950 font-sans selection:bg-indigo-500/30 overflow-hidden relative text-zinc-300">
@@ -89,11 +103,13 @@ const ChatPage = () => {
         </div>
 
         {/* User Profile Icon */}
-       <Link to='/dashboard'>
-        <div className="flex items-center gap-4">
+  
+        <div className="flex items-center gap-4" onClick={()=>{
+          navigate('/dashboard',{state:{user,auth:true}})
+        }}>
           <div className="hidden sm:flex flex-col items-end">
-            <span className="text-xs font-bold text-white">Alex Rivera</span>
-            <span className="text-[10px] text-indigo-400/80 font-medium uppercase tracking-wider">Premium</span>
+            <span className="text-xs font-bold text-white">{user.firstname} {user.lastname}</span>
+            <span className="text-[10px] text-indigo-400/80 font-medium uppercase tracking-wider">{user.userId}</span>
           </div>
           <div className="relative group cursor-pointer">
             <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[2px] transition-all hover:rotate-6 active:scale-90">
@@ -108,7 +124,7 @@ const ChatPage = () => {
             <div className="absolute -top-1 -right-1 h-3 w-3 bg-indigo-500 rounded-full border-2 border-zinc-900 shadow-lg"></div>
           </div>
         </div>
-       </Link>
+ 
       </div>
 
       {/* Messages Area */}
