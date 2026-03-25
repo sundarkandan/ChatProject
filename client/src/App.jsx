@@ -9,6 +9,7 @@ import Register from '../components/Register'
 import Chat from '../components/ChatPage'
 import ChatPage from '../components/ChatPage'
 import Dashboard from '../components/DashBoard'
+import ChangePassword from '../components/ChangePassword'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -20,7 +21,7 @@ function App() {
     <Route path='/register' element={<Register/>}/>
     <Route path='/chat' element={<ChatPage/>}/>
     <Route path='/dashboard' element={<Dashboard/>}/>
-    
+    <Route path='/password' element={<ChangePassword/>}/>
    </Routes>
    </>
   )

@@ -120,7 +120,7 @@ const DashBoard = () => {
             <input
               type="text"
               className="w-full bg-zinc-800/20 border border-zinc-700/50 text-white text-base rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-600"
-              defaultValue="John"
+              defaultValue={user.firstname}
             />
           </div>
           <div className="space-y-2.5">
@@ -128,7 +128,7 @@ const DashBoard = () => {
             <input
               type="text"
               className="w-full bg-zinc-800/20 border border-zinc-700/50 text-white text-base rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-600"
-              defaultValue="Doe"
+              defaultValue={user.lastname}
             />
           </div>
         </div>
@@ -140,27 +140,22 @@ const DashBoard = () => {
             <input
               type="text"
               className="w-full bg-zinc-800/20 border border-zinc-700/50 text-white text-base rounded-2xl pl-11 pr-5 py-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-              defaultValue="johndoe_dev"
+              defaultValue={user.userId}
             />
           </div>
         </div>
 
-        <div className="space-y-2.5">
-          <label className="block text-xs font-bold text-zinc-500 ml-1 uppercase tracking-[0.2em]">Email Address</label>
-          <input
-            type="email"
-            className="w-full bg-zinc-800/20 border border-zinc-700/50 text-white text-base rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-            defaultValue="john.doe@example.com"
-          />
-        </div>
+      
 
-        <div className="space-y-2.5">
+        <div onClick={()=>{
+              navigate('/password',{state:{auth,user}})
+            }} className="space-y-2.5">
           <label className="block text-xs font-bold text-zinc-500 ml-1 uppercase tracking-[0.2em]">Security Settings</label>
           <button
             type="button"
             className="w-full flex items-center justify-between bg-zinc-800/20 border border-zinc-700/50 text-white text-base rounded-2xl px-5 py-4 hover:bg-zinc-800/40 hover:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all group"
           >
-            <div className="flex items-center gap-3">
+            <div  className="flex items-center gap-3">
               <div className="h-8 w-8 bg-zinc-800 rounded-lg flex items-center justify-center group-hover:bg-indigo-500/20 transition-colors">
                 <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -175,9 +170,7 @@ const DashBoard = () => {
         </div>
 
         <div className="pt-12 mt-12 flex flex-col sm:flex-row items-center justify-end gap-4 border-t border-zinc-800/50">
-          <button type="button" className="w-full sm:w-auto px-8 py-4 text-sm font-bold text-zinc-400 hover:text-white transition-colors uppercase tracking-widest">
-            Discard Changes
-          </button>
+          
           <button
             type="button"
             className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-black py-5 px-14 rounded-2xl shadow-2xl shadow-indigo-500/30 transition-all duration-300 active:scale-95 uppercase tracking-widest"

@@ -5,9 +5,12 @@ require('dotenv').config();
 const mongoose=require('mongoose')
 const http=require('http')
 const {Server}=require('socket.io')
-const Auth=require('./Routers/Auth.js')
 const app=express()
+const multer=require('multer')
+const path=require('path')
 
+const Auth=require('./Routers/Auth.js')
+const Password=require('./Routers/password.js')
 
 app.use(express.json())
 app.use(cors({
@@ -19,7 +22,16 @@ mongoose.connect(process.env.MONGO_DB_URL).then(()=>{
     console.log('Mongodb Database connected')
 })
 
+const uploads=multer.diskStorage({
+    destination:(req,file,cb)=>{
+        cb(null,__dirname+'/uploads/',Date.now()+path.extname(req.file.filename))
+    }
+    
+})
+
 app.use('/chatsite',Auth)
+app.use('/password',Password)
+
 
 const httpServer=http.createServer(app)
 
