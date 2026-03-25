@@ -10,6 +10,8 @@ const DashBoard = () => {
   const server=import.meta.env.VITE_SERVER
     const auth=useLocation().state?.auth;
     const [user,setUser]=useState(useLocation().state?.user )
+    
+
     const [img,setImg]=useState(null)
     const [preview,setPreview]=useState('')
   const [show,setShow]=useState(false)
@@ -23,7 +25,7 @@ const DashBoard = () => {
     },[auth,navigate])
 
     useEffect(()=>{
-       axios.get(server+"profile",{params:user}).then(res=>{
+       axios.get(server+"profile",{params:user.userId}).then(res=>{
         setUser(res.data)
         console.log(res.data)
 
@@ -124,7 +126,7 @@ const DashBoard = () => {
                 setPreview( URL.createObjectURL(e.target.files[0]))
                 setImg(e.target.files[0])
                 setShow(true)
-                await axios.get(server+'/profile').then((res)=>{
+                await axios.get(server+'/profile',{params:user.userId}).then((res)=>{
                   setUser(res.data)
                 })
               }} className="hidden" />
