@@ -115,7 +115,7 @@ const ChatPage = () => {
             <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[2px] transition-all hover:rotate-6 active:scale-90">
               <div className="h-full w-full rounded-[14px] bg-zinc-900 overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120" 
+                  src={user.profile} 
                   alt="User Profile" 
                   className="h-full w-full object-cover"
                 />

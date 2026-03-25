@@ -3,10 +3,17 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLocation,useNavigate } from 'react-router-dom';
+import profileImg from './controllers/profileImg';
+import axios from 'axios'
+import userDetails from './controllers/userDetails';
 const DashBoard = () => {
+  const server=import.meta.env.VITE_SERVER
     const auth=useLocation().state?.auth;
     const [user,setUser]=useState(useLocation().state?.user )
-    
+    const [img,setImg]=useState(null)
+    const [preview,setPreview]=useState('')
+  const [show,setShow]=useState(false)
+   
     const navigate=useNavigate()
     useEffect(()=>{
       console.log(auth,user)
@@ -14,6 +21,18 @@ const DashBoard = () => {
         navigate('/')
       }
     },[auth,navigate])
+
+    useEffect(()=>{
+       axios.get(server+"profile",{params:user}).then(res=>{
+        setUser(res.data)
+        console.log(res.data)
+
+      })
+    },[])
+  
+      
+      
+  
   return (
     <>
       <style>
@@ -65,7 +84,7 @@ const DashBoard = () => {
         <div className="flex flex-wrap items-center gap-4">
         
           <button onClick={()=>{
-            navigate('/chat',{state:{user,auth}})
+            navigate('/chat',{state:{user,auth:true}})
           }} type="button" className="group flex items-center justify-center gap-3 bg-zinc-800/50 hover:bg-indigo-600 border border-zinc-700/50 hover:border-indigo-400 px-6 py-3.5 rounded-2xl transition-all duration-300 shadow-lg shrink-0">
             <div className="relative">
               <svg className="w-6 h-6 text-indigo-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,20 +115,30 @@ const DashBoard = () => {
           <div className="relative group">
             <div className="h-32 w-32 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 p-1 shadow-2xl">
               <div className="h-full w-full rounded-full bg-zinc-900 flex items-center justify-center overflow-hidden">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Avatar" className="w-full h-full object-cover" />
+                <img src={preview ||user.profile || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} alt="Avatar" className="w-full h-full object-cover" />
               </div>
             </div>
             <label className="absolute bottom-1 right-1 h-10 w-10 bg-indigo-600 rounded-full border-4 border-zinc-900 flex items-center justify-center cursor-pointer hover:bg-indigo-500 transition-all hover:scale-110 shadow-xl">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              <input type="file" className="hidden" />
+              <input type="file" onChange={async (e)=>{
+                setPreview( URL.createObjectURL(e.target.files[0]))
+                setImg(e.target.files[0])
+                setShow(true)
+                await axios.get(server+'/profile').then((res)=>{
+                  setUser(res.data)
+                })
+              }} className="hidden" />
             </label>
           </div>
           <div className="text-center sm:text-left">
-            <h3 className="text-white font-bold text-xl">Profile Picture</h3>
+            <h3 className="text-white font-bold text-xl">{user.userId}</h3>
             <p className="text-zinc-500 text-sm mt-2 max-w-xs">Upload a new avatar to personalize your account. High resolution square images work best.</p>
             <div className="mt-4 flex gap-3 justify-center sm:justify-start">
-              <button type="button" className="text-xs font-bold text-indigo-400 uppercase tracking-widest hover:text-indigo-300 transition-colors">Change Photo</button>
-              <button type="button" className="text-xs font-bold text-rose-500 uppercase tracking-widest hover:text-rose-400 transition-colors">Remove</button>
+            {show?  <button type="button" onClick={async ()=>{
+                profileImg(img,user.userId,user.profile)
+                setShow(false)
+              }} className="text-xs font-bold text-indigo-400 uppercase tracking-widest hover:text-indigo-300 transition-colors">click to change Photo</button>:""}
+             
             </div>
           </div>
         </div>
@@ -120,7 +149,8 @@ const DashBoard = () => {
             <input
               type="text"
               className="w-full bg-zinc-800/20 border border-zinc-700/50 text-white text-base rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-600"
-              defaultValue={user.firstname}
+              value={user.firstname}
+              onChange={(e)=>{setUser({...user,firstname:e.target.value})}}
             />
           </div>
           <div className="space-y-2.5">
@@ -128,22 +158,13 @@ const DashBoard = () => {
             <input
               type="text"
               className="w-full bg-zinc-800/20 border border-zinc-700/50 text-white text-base rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-600"
-              defaultValue={user.lastname}
+              value={user.lastname}
+               onChange={(e)=>{setUser({...user,lastname:e.target.value})}}
             />
           </div>
         </div>
 
-        <div className="space-y-2.5">
-          <label className="block text-xs font-bold text-zinc-500 ml-1 uppercase tracking-[0.2em]">Unique Username</label>
-          <div className="relative group">
-            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-indigo-500 font-bold text-lg">@</span>
-            <input
-              type="text"
-              className="w-full bg-zinc-800/20 border border-zinc-700/50 text-white text-base rounded-2xl pl-11 pr-5 py-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-              defaultValue={user.userId}
-            />
-          </div>
-        </div>
+       
 
       
 
@@ -173,6 +194,9 @@ const DashBoard = () => {
           
           <button
             type="button"
+            onClick={()=>{
+              userDetails(user)
+            }}
             className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-black py-5 px-14 rounded-2xl shadow-2xl shadow-indigo-500/30 transition-all duration-300 active:scale-95 uppercase tracking-widest"
           >
             Update Profile

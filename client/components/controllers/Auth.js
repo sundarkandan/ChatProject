@@ -9,7 +9,7 @@ async function Auth(UserInput,role,navigate){
         await axios.post(server+'chatsite/authRegister',UserInput).then(res=>{
             const result=res.data.result;
             if(result=='success'){
-                toast.success(res.data.msg)
+               
                 navigate('/chat',{state:{auth:true,user:res.data.user}})
             }
             else if(result=='duplicate'){
@@ -25,7 +25,7 @@ async function Auth(UserInput,role,navigate){
         await axios.post(server+'chatsite/authLogin',UserInput).then(res=>{
             const result=res.data.result;
             if(result=='success'){
-                toast.success(res.data.msg)
+                
                 navigate('/chat',{state:{auth:true,user:res.data.user}})
             }
             else{

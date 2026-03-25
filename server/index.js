@@ -11,6 +11,8 @@ const path=require('path')
 
 const Auth=require('./Routers/Auth.js')
 const Password=require('./Routers/password.js')
+const profile=require("./Routers/profileImg.js")
+const user=require("./Routers/users.js")
 
 app.use(express.json())
 app.use(cors({
@@ -22,16 +24,14 @@ mongoose.connect(process.env.MONGO_DB_URL).then(()=>{
     console.log('Mongodb Database connected')
 })
 
-const uploads=multer.diskStorage({
-    destination:(req,file,cb)=>{
-        cb(null,__dirname+'/uploads/',Date.now()+path.extname(req.file.filename))
-    }
-    
-})
+
 
 app.use('/chatsite',Auth)
 app.use('/password',Password)
+app.use('/profile',profile)
+app.use('/user',user)
 
+app.use('/profile', express.static(path.join(__dirname, 'profile')));
 
 const httpServer=http.createServer(app)
 
