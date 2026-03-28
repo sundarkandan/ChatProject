@@ -3,18 +3,31 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLocation,useNavigate } from 'react-router-dom';
+import axios from 'axios';
 const ChatPage = () => {
   const navigate=useNavigate()
-  const auth=useLocation().state?.auth || false
-  const[user,setUser]=useState(useLocation().state?.user || {})
+  const location=useLocation()
+  const auth=location.state?.auth || false
+  const[user,setUser]=useState({})
+  const server=import.meta.env.VITE_SERVER
+const [sender,setSender]=useState(null)
+  const[selected,setSelected]=useState(null)
   useEffect(()=>{
+    console.log(user)
     if(!auth ){
       navigate('/')
     }
-    else{
-      console.log(auth)
-    }
+    
   },[auth, navigate])
+
+  const userId=location.state?.user?.userId
+  useEffect(()=>{
+    console.log(user)
+    axios.get(server+"user/",{params:{userId}}).then(res=>{
+      setUser(res.data)
+    })
+    
+  },[userId,server])
   return (
     <>
       <div className="h-screen w-full bg-zinc-950 font-sans selection:bg-indigo-500/30 overflow-hidden relative text-zinc-300">
@@ -28,9 +41,11 @@ const ChatPage = () => {
     {/* CONTACT LIST SIDEBAR */}
     <div className="w-80 border-r border-zinc-800/50 flex flex-col bg-zinc-900/40 hidden md:flex">
       <div className="h-20 flex items-center px-6 border-b border-zinc-800/50">
-        <h2 className="text-xl font-bold text-white tracking-tight">Messages</h2>
-      </div>
       
+        <h2 className="text-xl font-bold text-white tracking-tight">Messages</h2>
+       
+      </div>
+     
       <div className="p-4">
         <div className="relative group">
           <input 
@@ -38,50 +53,48 @@ const ChatPage = () => {
             placeholder="Search chats..." 
             className="w-full bg-zinc-800/40 border border-zinc-700/50 rounded-xl py-2 px-4 text-sm outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-600"
           />
+          
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar px-2 pb-4 space-y-1">
         {/* Active Contact */}
-        <div className="flex items-center gap-4 p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 cursor-pointer">
-          <div className="relative">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold">JD</div>
-            <div className="absolute -bottom-1 -right-1 h-3.5 w-3.5 bg-emerald-500 border-2 border-zinc-900 rounded-full"></div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-baseline">
-              <h4 className="text-sm font-semibold text-white truncate">John Doe</h4>
-              <span className="text-[10px] text-zinc-500">09:43 AM</span>
-            </div>
-            <p className="text-xs text-indigo-300/70 truncate">Check the attached preview...</p>
-          </div>
-        </div>
+      
 
         {/* Other Contacts */}
-        {[
-          { name: "Sarah Smith", initial: "SS", color: "from-emerald-500 to-teal-400", msg: "The assets are ready for review.", time: "Yesterday", status: "offline" },
-          { name: "Design Team", initial: "DT", color: "from-orange-500 to-pink-500", msg: "New moodboard updated.", time: "Oct 22", status: "online" },
-          { name: "Alex Johnson", initial: "AJ", color: "from-blue-500 to-cyan-400", msg: "Sent the contract back.", time: "Oct 21", status: "offline" },
-          { name: "Marketing", initial: "MK", color: "from-purple-500 to-indigo-400", msg: "Budget approved! 🚀", time: "Oct 20", status: "offline" }
-        ].map((contact, i) => (
-          <div key={i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-zinc-800/40 border border-transparent hover:border-zinc-700/30 transition-all cursor-pointer group">
+        {user.friends?user.friends.map((ele, i) => (
+          <div onClick={()=>{
+            setSelected(i)
+            setSender(ele)
+            }} key={i} className={`flex items-center ${i==selected?'bg-indigo-500/10 border border-indigo-500/20':""}  gap-4 p-3 rounded-2xl hover:bg-zinc-800/40 border border-transparent hover:border-zinc-700/30 transition-all cursor-pointer group`}>
             <div className="relative">
-              <div className={`h-12 w-12 rounded-xl bg-gradient-to-tr ${contact.color} flex items-center justify-center text-white font-bold opacity-80 group-hover:opacity-100 transition-opacity`}>
-                {contact.initial}
+              {
+                ele.profile? <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[2px] transition-all hover:rotate-6 active:scale-90">
+              <div className="h-full w-full rounded-[14px] bg-zinc-900 overflow-hidden">
+                <img 
+                  src={ele.profile} 
+                  alt="User Profile" 
+                  className="h-full w-full object-cover"
+                />
               </div>
-              {contact.status === "online" && (
+            </div>:<div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg">
+      {`${ele.firstname || ""} ${ele.lastname || ""}`.split(" ").map(word => word[0]).join("").toUpperCase()           
+}
+            </div>
+              }
+              {/* {contact.status === "online" && (
                 <div className="absolute -bottom-1 -right-1 h-3.5 w-3.5 bg-emerald-500 border-2 border-zinc-900 rounded-full"></div>
-              )}
+              )} */}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-baseline">
-                <h4 className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors truncate">{contact.name}</h4>
-                <span className="text-[10px] text-zinc-600">{contact.time}</span>
+                <h4 className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors truncate">{ele.firstname} {ele.lastname}</h4>
+                <span className="text-[10px] text-zinc-600">sdfa</span>
               </div>
-              <p className="text-xs text-zinc-500 truncate">{contact.msg}</p>
+              <p  className="text-sm font-semibold text-white truncate">asdfas</p>
             </div>
           </div>
-        ))}
+        )):""}
       </div>
     </div>
 
@@ -89,30 +102,48 @@ const ChatPage = () => {
     <div className="flex-1 flex flex-col min-w-0 bg-zinc-900/20">
       {/* Chat Header */}
       <div className="h-20 flex items-center justify-between px-8 border-b border-zinc-800/50 bg-zinc-900/20 backdrop-blur-md">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg">
-              JD
+       {
+        sender? <div className="flex items-center gap-4">
+           {
+                sender.profile? <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[2px] transition-all hover:rotate-6 active:scale-90">
+              <div className="h-full w-full rounded-[14px] bg-zinc-900 overflow-hidden">
+                <img 
+                  src={sender.profile} 
+                  alt="User Profile" 
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </div>:<div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg">
+      {`${sender.firstname || ""} ${sender.lastname || ""}`.split(" ").map(word => word[0]).join("").toUpperCase()           
+}
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 bg-emerald-500 border-2 border-zinc-900 rounded-full"></div>
-          </div>
+              }
           <div>
-            <h3 className="text-white font-semibold text-base tracking-tight">John Doe</h3>
+            <h3 className="text-white font-semibold text-base tracking-tight">{sender.firstname} {sender.lastname}</h3>
             <p className="text-xs text-zinc-400 font-medium">Online</p>
           </div>
-        </div>
+        </div>:""
+       }
 
-        {/* User Profile Icon */}
+        {/* User Profile Icon */}  <input 
+            type="text" 
+            placeholder="Search Users" 
+            onClick={()=>{
+              navigate('/search',{state:{auth,user}})
+            }}
+            className="w-75 bg-zinc-800/40 border border-zinc-700/50 rounded-xl py-2 px-4 text-sm outline-none focus:border-indigo-500/50 transition-all placeholder:text-zinc-600"
+          />
   
         <div className="flex items-center gap-4" onClick={()=>{
           navigate('/dashboard',{state:{user,auth:true}})
         }}>
           <div className="hidden sm:flex flex-col items-end">
-            <span className="text-xs font-bold text-white">{user.firstname} {user.lastname}</span>
-            <span className="text-[10px] text-indigo-400/80 font-medium uppercase tracking-wider">{user.userId}</span>
+            <span className="text-xs font-bold text-white">{user.firstname || ""} {user.lastname|| ""}</span>
+            <span className="text-[10px] text-indigo-400/80 font-medium uppercase tracking-wider">{user.userId|| ""}</span>
           </div>
           <div className="relative group cursor-pointer">
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[2px] transition-all hover:rotate-6 active:scale-90">
+            {
+              user.profile? <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[2px] transition-all hover:rotate-6 active:scale-90">
               <div className="h-full w-full rounded-[14px] bg-zinc-900 overflow-hidden">
                 <img 
                   src={user.profile} 
@@ -120,7 +151,12 @@ const ChatPage = () => {
                   className="h-full w-full object-cover"
                 />
               </div>
+            </div>:<div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg">
+      {`${user.firstname || ""} ${user.lastname || ""}`.split(" ").map(word => word[0]).join("").toUpperCase()           
+}
             </div>
+            }
+           
             <div className="absolute -top-1 -right-1 h-3 w-3 bg-indigo-500 rounded-full border-2 border-zinc-900 shadow-lg"></div>
           </div>
         </div>

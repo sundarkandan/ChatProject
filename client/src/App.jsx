@@ -10,6 +10,7 @@ import Chat from '../components/ChatPage'
 import ChatPage from '../components/ChatPage'
 import Dashboard from '../components/DashBoard'
 import ChangePassword from '../components/ChangePassword'
+import Search from "../components/Search"
 
 function App() {
   const [count, setCount] = useState(0)
@@ -22,6 +23,7 @@ function App() {
     <Route path='/chat' element={<ChatPage/>}/>
     <Route path='/dashboard' element={<Dashboard/>}/>
     <Route path='/password' element={<ChangePassword/>}/>
+    <Route path='/search' element={<Search/>}/>
    </Routes>
    </>
   )

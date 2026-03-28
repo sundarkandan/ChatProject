@@ -16,7 +16,7 @@ Router.post('/changePass', async(req,res)=>{
         if(compare){
         const newPass=await bcrypt.hash(password.newPass,10)
         const changing=await User.updateOne({userId:user.userId},{$set:{password:newPass}})
-        res.send({msg:"Password Change Successfully...",result:'success'})
+        
     }
     else{
         res.send({msg:"you enter a wrong current password",result:'fail'})

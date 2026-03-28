@@ -8,6 +8,7 @@ const userSchema=mongoose.Schema({
         unique:true,
         type:String
     },
+    friends:Array,
     password:String
 })
 const User=mongoose.model('user',userSchema)

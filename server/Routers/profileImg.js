@@ -27,7 +27,17 @@ Router.post('/profileChange',uploads.single('profile'),async (req,res)=>{
         const urls=req.protocol+"://"+req.get('host')+"/profile/"+req.file.filename
         console.log(urls)
         const changing=await User.updateOne({userId},{$set:{profile:urls}})
-
+        const changeForAll=await User.updateMany(
+            {'friends.userId':userId},
+            {
+                $set:{
+                    "friends.$[elem].profile":urls
+                }
+            },
+            { 
+                arrayFilters: [{ "elem.userId": userId }]
+            }
+        )
         if(profile){
             const oldFileName = profile.split('/').pop();
             const oldFilePath = path.join(__dirname, '../profile', oldFileName);

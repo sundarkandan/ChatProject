@@ -15,7 +15,7 @@ const DashBoard = () => {
     const [img,setImg]=useState(null)
     const [preview,setPreview]=useState('')
   const [show,setShow]=useState(false)
-   
+   const[btnshow,setBtnshow]=useState(false)
     const navigate=useNavigate()
     useEffect(()=>{
       console.log(auth,user)
@@ -117,7 +117,7 @@ const DashBoard = () => {
           <div className="relative group">
             <div className="h-32 w-32 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 p-1 shadow-2xl">
               <div className="h-full w-full rounded-full bg-zinc-900 flex items-center justify-center overflow-hidden">
-                <img src={preview ||user.profile || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} alt="Avatar" className="w-full h-full object-cover" />
+                <img src={preview ||user.profile ||"https://cdn-icons-png.flaticon.com/512/10302/10302971.png"} alt="Avatar" className="w-full h-full object-cover" />
               </div>
             </div>
             <label className="absolute bottom-1 right-1 h-10 w-10 bg-indigo-600 rounded-full border-4 border-zinc-900 flex items-center justify-center cursor-pointer hover:bg-indigo-500 transition-all hover:scale-110 shadow-xl">
@@ -152,7 +152,10 @@ const DashBoard = () => {
               type="text"
               className="w-full bg-zinc-800/20 border border-zinc-700/50 text-white text-base rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-600"
               value={user.firstname}
-              onChange={(e)=>{setUser({...user,firstname:e.target.value})}}
+              onChange={(e)=>{
+                setBtnshow(true)
+                setUser({...user,firstname:e.target.value})}
+              }
             />
           </div>
           <div className="space-y-2.5">
@@ -161,7 +164,10 @@ const DashBoard = () => {
               type="text"
               className="w-full bg-zinc-800/20 border border-zinc-700/50 text-white text-base rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-600"
               value={user.lastname}
-               onChange={(e)=>{setUser({...user,lastname:e.target.value})}}
+               onChange={(e)=>{
+                setUser({...user,lastname:e.target.value})
+                setBtnshow(true)
+              }}
             />
           </div>
         </div>
@@ -194,15 +200,16 @@ const DashBoard = () => {
 
         <div className="pt-12 mt-12 flex flex-col sm:flex-row items-center justify-end gap-4 border-t border-zinc-800/50">
           
-          <button
+         {btnshow? <button
             type="button"
             onClick={()=>{
               userDetails(user)
+              setBtnshow(false)
             }}
             className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-black py-5 px-14 rounded-2xl shadow-2xl shadow-indigo-500/30 transition-all duration-300 active:scale-95 uppercase tracking-widest"
           >
             Update Profile
-          </button>
+          </button>:""}
         </div>
       </form>
     </div>
