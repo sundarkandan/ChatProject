@@ -1,33 +1,92 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState ,useRef} from 'react';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLocation,useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import {io} from "socket.io-client"
+
+const socket=io(import.meta.env.VITE_SERVER)
 const ChatPage = () => {
   const navigate=useNavigate()
+  
   const location=useLocation()
   const auth=location.state?.auth || false
   const[user,setUser]=useState({})
   const server=import.meta.env.VITE_SERVER
-const [sender,setSender]=useState(null)
+const [reciver,setReciver]=useState("")
   const[selected,setSelected]=useState(null)
+const[messages, setMessages]=useState([])
+  const[message,setMessage]=useState({reciver:reciver.userId || "",reciver:user.userId || " ",sendermsg:""})
+  const [istyping,setIstyping]=useState(false)
+  const scrollRef = useRef(null); // Scroll reference object
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const typingTimeoutRef = useRef(null); // Timer-ah store panna
+
+  // Message area-ku auto-scroll logic
+  useEffect(() => {
+    const scrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+    const timer = setTimeout(scrollToBottom, 100); 
+
+  return () => clearTimeout(timer);
+}, [messages, reciver]);
   useEffect(()=>{
     console.log(user)
     if(!auth ){
       navigate('/')
     }
-    
+   
   },[auth, navigate])
 
+ useEffect(()=>{
+      setMessage({...message,reciver:reciver.userId,sender:user.userId})
+    },[reciver,user])
+
   const userId=location.state?.user?.userId
+
+
   useEffect(()=>{
     console.log(user)
     axios.get(server+"user/",{params:{userId}}).then(res=>{
       setUser(res.data)
+      setMessages(res.data.messages)
+      console.log(res.data.messages)
     })
     
-  },[userId,server])
+  },[])
+useEffect(()=>{
+    socket.on('istyping',(cond)=>{
+      setIstyping(cond)
+    })
+    socket.on('nottyping',(con)=>{
+      setIstyping(con)
+    })
+},[message.sendermsg])
+//socket useEffect
+  useEffect(()=>{
+  socket.connect()
+ if(user){
+   socket.emit('userid',{sender:user.userId})   
+} 
+},[user])
+
+
+
+
+
+useEffect(()=>{
+   socket.on('recive_message',(msg)=>{
+setMessages(msg);
+console.log(msg)
+  return () => {
+    socket.off('recive_message'); // Cleanup must
+  };
+   })
+},[message])
   return (
     <>
       <div className="h-screen w-full bg-zinc-950 font-sans selection:bg-indigo-500/30 overflow-hidden relative text-zinc-300">
@@ -39,7 +98,7 @@ const [sender,setSender]=useState(null)
   <div className="relative w-full h-full bg-zinc-900/60 backdrop-blur-xl flex overflow-hidden">
     
     {/* CONTACT LIST SIDEBAR */}
-    <div className="w-80 border-r border-zinc-800/50 flex flex-col bg-zinc-900/40 hidden md:flex">
+<div className={`${isSidebarOpen ? 'flex w-full' : 'hidden'} md:flex md:w-80 border-r border-zinc-800/50 flex flex-col bg-zinc-900/40`}>
       <div className="h-20 flex items-center px-6 border-b border-zinc-800/50">
       
         <h2 className="text-xl font-bold text-white tracking-tight">Messages</h2>
@@ -65,7 +124,9 @@ const [sender,setSender]=useState(null)
         {user.friends?user.friends.map((ele, i) => (
           <div onClick={()=>{
             setSelected(i)
-            setSender(ele)
+            setReciver(ele)
+            setMessage({})
+            setIsSidebarOpen(false);
             }} key={i} className={`flex items-center ${i==selected?'bg-indigo-500/10 border border-indigo-500/20':""}  gap-4 p-3 rounded-2xl hover:bg-zinc-800/40 border border-transparent hover:border-zinc-700/30 transition-all cursor-pointer group`}>
             <div className="relative">
               {
@@ -89,9 +150,9 @@ const [sender,setSender]=useState(null)
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-baseline">
                 <h4 className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors truncate">{ele.firstname} {ele.lastname}</h4>
-                <span className="text-[10px] text-zinc-600">sdfa</span>
+               
               </div>
-              <p  className="text-sm font-semibold text-white truncate">asdfas</p>
+              
             </div>
           </div>
         )):""}
@@ -99,27 +160,38 @@ const [sender,setSender]=useState(null)
     </div>
 
     {/* FULL SCREEN CHAT INTERFACE */}
-    <div className="flex-1 flex flex-col min-w-0 bg-zinc-900/20">
+    <div className={`${!isSidebarOpen ? 'flex' : 'hidden'} md:flex flex-1 flex flex-col min-w-0 bg-zinc-900/20`}>
       {/* Chat Header */}
+      <div className="flex items-center gap-4">
+  {/* Mobile Back Button */}
+  <button 
+    onClick={() => setIsSidebarOpen(true)} 
+    className="md:hidden p-2 -ml-2 text-zinc-400 hover:text-white"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+  </button>
+  
+  {/* Existing Receiver Profile Info... */}
+</div>
       <div className="h-20 flex items-center justify-between px-8 border-b border-zinc-800/50 bg-zinc-900/20 backdrop-blur-md">
        {
-        sender? <div className="flex items-center gap-4">
+        reciver? <div className="flex items-center gap-4">
            {
-                sender.profile? <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[2px] transition-all hover:rotate-6 active:scale-90">
+                reciver.profile? <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[2px] transition-all hover:rotate-6 active:scale-90">
               <div className="h-full w-full rounded-[14px] bg-zinc-900 overflow-hidden">
                 <img 
-                  src={sender.profile} 
+                  src={reciver.profile} 
                   alt="User Profile" 
                   className="h-full w-full object-cover"
                 />
               </div>
             </div>:<div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg">
-      {`${sender.firstname || ""} ${sender.lastname || ""}`.split(" ").map(word => word[0]).join("").toUpperCase()           
+      {`${reciver.firstname || ""} ${reciver.lastname || ""}`.split(" ").map(word => word[0]).join("").toUpperCase()           
 }
             </div>
               }
           <div>
-            <h3 className="text-white font-semibold text-base tracking-tight">{sender.firstname} {sender.lastname}</h3>
+            <h3 className="text-white font-semibold text-base tracking-tight">{reciver.firstname} {reciver.lastname}</h3>
             <p className="text-xs text-zinc-400 font-medium">Online</p>
           </div>
         </div>:""
@@ -162,7 +234,9 @@ const [sender,setSender]=useState(null)
         </div>
  
       </div>
-
+{
+  reciver?<>
+  
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 custom-scrollbar">
         <div className="max-w-4xl mx-auto w-full flex flex-col space-y-8">
@@ -174,54 +248,46 @@ const [sender,setSender]=useState(null)
           </div>
 
           {/* Receiver Message */}
-          <div className="flex justify-start opacity-0 translate-x-[-20px] [animation:slide-in-left_0.4s_ease-out_forwards_0.2s]">
-            <div className="max-w-[85%] md:max-w-[70%] bg-zinc-800/80 border border-zinc-700/50 text-zinc-100 p-5 rounded-3xl rounded-tl-none shadow-xl">
-              <p className="text-base leading-relaxed">Hey! I saw the design you sent over. The dark theme looks incredible. Can we start implementing the chat module today?</p>
-              <span className="text-[10px] text-zinc-500 mt-2 block text-right font-medium uppercase">09:41 AM</span>
-            </div>
-          </div>
+          {
+            messages.map((ele,idx)=>{
+             if(reciver.userId==ele.reciver){
+               if(ele.sendermsg){
+                return(
+               
 
-          {/* Sender Message with Seen Ticks */}
-          <div className="flex justify-end opacity-0 translate-x-[20px] [animation:slide-in-right_0.4s_ease-out_forwards_0.4s]">
+           <div className="flex justify-end opacity-0 translate-x-[20px] [animation:slide-in-right_0.4s_ease-out_forwards_0.4s]">
             <div className="max-w-[85%] md:max-w-[70%] bg-indigo-600 text-white p-5 rounded-3xl rounded-tr-none shadow-lg shadow-indigo-500/20">
-              <p className="text-base leading-relaxed">Absolutely! I've already set up the layout and the Tailwind config. We just need to wire up the animations now.</p>
+              <p className="text-base leading-relaxed">{ele.sendermsg}</p>
               <div className="flex items-center justify-end gap-1.5 mt-2">
-                <span className="text-[10px] text-indigo-200 uppercase font-bold tracking-tight">09:43 AM</span>
-                <div className="flex items-center text-emerald-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m7 13 5 5 10-10"/><path d="m2 13 5 5 2.5-2.5"/></svg>
-                </div>
+                <span className="text-[10px] text-indigo-200 uppercase font-bold tracking-tight">{ele.time}</span>
+               
               </div>
             </div>
           </div>
-
-          {/* Sender Image Message */}
-          <div className="flex justify-end opacity-0 translate-x-[20px] [animation:slide-in-right_0.4s_ease-out_forwards_0.6s]">
-            <div className="max-w-[85%] md:max-w-[70%] bg-zinc-800/40 border border-zinc-700/50 p-2 rounded-3xl rounded-tr-none shadow-xl">
-              <div className="relative group overflow-hidden rounded-2xl bg-zinc-900 aspect-video flex items-center justify-center">
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-                 <div className="w-full h-full bg-indigo-500/10 flex items-center justify-center border border-dashed border-zinc-700 rounded-2xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-700"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                 </div>
-                 <div className="absolute bottom-3 left-4 z-20">
-                    <p className="text-xs font-semibold text-white">preview-dashboard-v2.png</p>
-                    <p className="text-[10px] text-zinc-400">2.4 MB</p>
-                 </div>
-              </div>
-              <div className="flex items-center justify-end gap-1.5 p-2">
-                <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-tight">09:44 AM</span>
-                <div className="flex items-center text-emerald-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m7 13 5 5 10-10"/><path d="m2 13 5 5 2.5-2.5"/></svg>
-                </div>
-              </div>
+              )
+              }
+              else{
+                return(
+                   <div className="flex justify-start opacity-0 translate-x-[-20px] [animation:slide-in-left_0.4s_ease-out_forwards_0.2s]">
+            <div className="max-w-[85%] md:max-w-[70%] bg-zinc-800/80 border border-zinc-700/50 text-zinc-100 p-5 rounded-3xl rounded-tl-none shadow-xl">
+              <p className="text-base leading-relaxed">{ele.recivermsg}</p>
+              <span className="text-[10px] text-zinc-500 mt-2 block text-right font-medium uppercase">{ele.time}</span>
             </div>
           </div>
+                )
+              }
+             }
+            })
+          }
 
-          {/* System Event */}
-          <div className="flex  opacity-0 [animation:fade-in_0.6s_ease-out_forwards_1s]">
-            <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-3 py-1 rounded-lg border border-emerald-500/20">
-              John is typing...
-            </span>
-          </div>
+          {istyping?<div className="flex opacity-0 [animation:fade-in_0.4s_ease-out_forwards,blink_1.5s_infinite_ease-in-out_0.4s]">
+    <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-3 py-1 rounded-lg border border-emerald-500/20 flex items-center gap-2">
+      {/* Oru chinna dot animation-um sethukalam */}
+      <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-bounce"></span>
+      {reciver.firstname} {reciver.lastname} is typing...
+    </span>
+  </div>:""}
+          <div ref={scrollRef} />
         </div>
       </div>
 
@@ -231,29 +297,50 @@ const [sender,setSender]=useState(null)
           
           <div className="relative flex items-center gap-2 bg-zinc-800/30 border border-zinc-700/50 rounded-2xl p-2 transition-all focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20">
             
-            <div className="flex items-center gap-1 pl-2">
-              <button className="h-9 w-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-white hover:bg-zinc-700/50 transition-all active:scale-90">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.51a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-              </button>
-              <button className="h-9 w-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-white hover:bg-zinc-700/50 transition-all active:scale-90">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-              </button>
-            </div>
+            
 
-            <div className="h-6 w-[1px] bg-zinc-700/50 mx-1"></div>
-
+            
             <input 
               type="text" 
               placeholder="Type your message..." 
+              value={message.sendermsg}
+              
+              onChange={(e)=>{
+                setMessage({...message,sendermsg:e.target.value})
+                socket.emit('istyping',message)
+                 if(!e.target.value){
+                socket.emit('nottyping',(message))
+                
+              }
+              if (typingTimeoutRef.current) {
+    clearTimeout(typingTimeoutRef.current);
+  }
+
+  // 3. Pudhu timer set pannunga (1 second wait pannum)
+  typingTimeoutRef.current = setTimeout(() => {
+    socket.emit('nottyping', message);
+  }, 1000)
+              }}
               className="flex-1 bg-transparent border-none outline-none text-white text-base py-2.5 px-2 placeholder:text-zinc-600"
             />
             
-            <button className="h-10 px-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl flex items-center justify-center font-bold text-xs tracking-widest shadow-lg shadow-indigo-500/30 transition-all active:scale-95 shrink-0">
+            <button onClick={async ()=>{
+            
+              
+              
+              console.log(message)
+              socket.emit('message',message)
+             socket.emit('nottyping',message)
+              
+              setMessage({ ...message, sendermsg: "" });
+            }} className="h-10 px-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl flex items-center justify-center font-bold text-xs tracking-widest shadow-lg shadow-indigo-500/30 transition-all active:scale-95 shrink-0">
               SEND
             </button>
           </div>
         </div>
       </div>
+  </>:""
+}
     </div>
   </div>
 

@@ -16,7 +16,7 @@ Router.post('/userDetails',async(req,res)=>{
                     "friends.$[elem].firstname": datas.firstname,
                     "friends.$[elem].lastname": datas.lastname,
                     
-                }
+                } 
                     },
                     { 
                         arrayFilters: [{ "elem.userId": datas.userId }]
@@ -32,7 +32,7 @@ Router.post('/userDetails',async(req,res)=>{
 Router.get('/',async (req,res)=>{
     const userId=req.query.userId;
     const finding=await User.findOne({userId})
-    console.log(userId,finding)
+    
     if(finding){
         res.send(finding)
     }
@@ -51,8 +51,8 @@ Router.post('/addFriend',async (req,res)=>{
     const friendName=await User.findOne({userId:friend})
     
     try{
-        const adding=await User.updateOne({userId:user},{$push:{friends:friendName}})
-      console.log(adding)
+        const adding=await User.updateOne({userId:user},{$addToSet:{friends:friendName}})
+      
         res.send({msg:friendName.firstname+" "+friendName.lastname+" is Now Your Friend",result:"success"})
         
     }
